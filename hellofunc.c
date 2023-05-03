@@ -1,9 +1,19 @@
 #include <stdio.h>
-#include <hellomake.h>
+#include <unistd.h>
 
-void myPrintHelloMake(void) {
+ int createforks(int n){
+    for (int i = 0; i < n; i++) {
+        pid_t pid = fork();
+        if(pid == 0){
+                printf("this is chuldprocess %d\n",i+1);
+            break;
+        }
+    }
+   
+ }
 
-  printf("Hello makefiles!\n");
-
-  return;
-}
+ int main(int arcg, char *argv[])
+ {
+      scanf("%d");
+    createforks();
+ }
