@@ -90,7 +90,7 @@ char* concatenateStrings(const char* str1, const char* str2, const char* str3) {
 
 void generateMosaic(const char* fileName, int tileSize) {
 
-    // Open the bitmap file
+    // Open the bitmap file 
     // Open the bitmap file
     int fd = open("sample.bmp", O_RDONLY);
     if (fd < 0) {
@@ -133,10 +133,7 @@ void generateMosaic(const char* fileName, int tileSize) {
 
     // Read the pixel data
     bytes_read = read(fd, pixel_data, image_size - BMP_HEADER_SIZE);
-    if (bytes_read != image_size - BMP_HEADER_SIZE) {
-        printf("Error: Failed to read pixel data\n");
-        exit(EXIT_FAILURE);
-    }
+    
 
     // Pixel data is upside-down, so the first pixel in the data is the pixel on the bottom left.
     // So, to get the value of a pixel with given coordinates x and y, this circumstance has to be considered.
@@ -162,7 +159,6 @@ void generateMosaic(const char* fileName, int tileSize) {
     // At position k the byte corresponds to the blue value of the pixel. The next byte (+1) is green and +2 is red.
     // This is because the pixel values are stored in reverse order (BGR).
 
-    unsigned char* pixel_data = (unsigned char*) malloc(image_size - BMP_HEADER_SIZE);
     // If the memory allocation fails, exit the program
     if (pixel_data == NULL) {
         printf("Error: Failed to allocate memory for pixel data\n");
@@ -171,16 +167,44 @@ void generateMosaic(const char* fileName, int tileSize) {
 
     // Read the pixel data
     bytes_read = read(fd, pixel_data, image_size - BMP_HEADER_SIZE);
-    if (bytes_read != image_size - BMP_HEADER_SIZE) {
-        printf("Error: Failed to read pixel data\n");
-        exit(EXIT_FAILURE);
-    }
+    
 
     printf(concatenateStrings(fileName, "_mosaic_", intToString(tileSize)));
+    
+    bytes_read = read(fd, pixel_data, image_size - BMP_HEADER_SIZE);
+    
+        for (int y = 0; y < height; y += tileSize) {
+        for (int x = 0; x < width; x += tileSize) {
+            int tileWidth = (x + tileSize <= width) ? tileSize : (width - x);
+            int tileHeight = (y + tileSize <= height) ? tileSize : (height - y);
+            
+            int sumRed = 0, sumGreen = 0, sumBlue = 0, count = 0;
+            
+            for (int i = 0; i < tileHeight; i+=3) {
+                for (int j = 0; j < tileWidth; j+=3) {
+                    sumRed += pixel_data[(i*tileWidth)+j];
+                    sumGreen +=pixel_data[(i*tileWidth)+j+1];
+                    sumBlue += pixel_data[(i*tileWidth)+j+2];
+                    count++;
+                }
+            }
+           
+            unsigned char avgRed = sumRed / count, avgGreen = sumGreen / count, avgBlue = sumBlue / count;
+            printf("%d,%d,%d\n", x, y, count);
+            for (int i = 0; i < tileHeight; i+=3) {
+                for (int j = 0; j < tileWidth; j+=3) {
+                    pixel_data[(i*tileWidth)+j]= 0;
+                    pixel_data[(i*tileWidth)+j+1]= 0;
+                    pixel_data[(i*tileWidth)+j+2] =0;
+                    count++;
+                }
+            }
+        }
+    }
     create_new_File(&bmp_header,pixel_data, tileSize, fileName, image_size);
-
-
+    
 }
+
  void create_new_File( unsigned char header[], unsigned char body[], int tileSize , char* fileName, int image_size){
        // Open the bitmap file
     // Open the bitmap file
@@ -194,7 +218,7 @@ void generateMosaic(const char* fileName, int tileSize) {
 
     // Read the bitmap header
   
-    
+
     ssize_t bytes_read = write(fd, header, BMP_HEADER_SIZE);
 
     // If there are less bytes read, then the file is not a valid bitmap file
@@ -211,14 +235,12 @@ void generateMosaic(const char* fileName, int tileSize) {
     }
 
     bytes_read = write(fd, body, image_size - BMP_HEADER_SIZE);
-   
 
-
- }
+}
 
 
 int main() {
-    generateMosaic("sample.bmp", 4);
+    generateMosaic("sample.bmp", 64);
 
 
    /* // Open the bitmap file
